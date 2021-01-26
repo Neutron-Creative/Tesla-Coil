@@ -102,7 +102,7 @@ export GITHUB_USER='<your-github-username>';
 export GITHUB_ORGANIZATION='<your-github-organization>';
 ```
 
-Once you have go installed, you will also need to install goscrape with the following script/
+Once you have go installed, you will also need to install goscrape with the following script.
 
 ```bash
 go get github.com/cornelk/goscrape
