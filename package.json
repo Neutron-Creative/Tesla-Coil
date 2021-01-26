@@ -4,11 +4,16 @@
   "description": "The static site generation tool for Neutorn based on Lightning Rod.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Neutron Creative Inc.",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "@supabase/supabase-js": "^1.3.2"
+    "@supabase/supabase-js": "^1.3.2",
+    "await-exec": "^0.1.2",
+    "axios": "^0.21.1",
+    "dotenv": "^8.2.0",
+    "netlify": "^6.1.3"
   }
 }
