@@ -82,10 +82,10 @@ async function process_queue() {
     // Handle errors
      if(property.error) return handle_error('fetching property with build id', property.error);
 
-     console.log('Beginning build of property ' + property.data.url);
+     console.log('\nBeginning build of property ' + property.data.url);
 
      // Create build from property url
-     await exec('goscrape ' + property.data.url + ' --output sites/' + property.data.url.replace(/[^a-z0-9]/gi, '_').toLowerCase() );
+     await exec('goscrape ' + property.data.url + ' --output sites/' );
 
      // Report build completed date
      build_timestamps.completed = new Date();
@@ -99,14 +99,15 @@ async function process_queue() {
      // Load other deployments on property to check if first successful deployment
     let alt_deployments = await supabase
     .from('builds')
-    .update({ status: 'success' })
-    .eq('property', data.property);
+    .select()
+    .eq('property', data.property)
+    .eq('status', 'success');
 
      // If first deployment, instantiate deployment from build
-     if(alt_deployments.error?.message == 'JSON object requested, multiple (or no) rows returned') return instantiate_deployment(data);
+     if(!alt_deployments.data || alt_deployments.data.length==0) return instantiate_deployment(data, property.data);
 
      // Else, update existing deployment
-     return update_deployment(data, property);
+     return update_deployment(data, property.data);
 
 }
 
@@ -129,23 +130,62 @@ function handle_error(label, error) {
         return process_queue();
 }
 
-function instantiate_deployment(data) {
-     // Finish loop & restart
-     return finish_loop(data);
-}
-
-function update_deployment(data, property) {
+async function instantiate_deployment(data, property) {
+    let response = await axios.post('https://api.github.com/orgs/' + process.env.GITHUB_ORGANIZATION + '/repos', {
+        name: property.url,
+        private: true
+    }, {
+        auth: {
+            username: process.env.GITHUB_USER,
+            password: process.env.GITHUB_TOKEN
+        }
+    });
+    // If git respository could not be created
+    if(response.error) return handle_error(response.error);
+    // Initiate git repository locally
+    await exec('cd ./sites/' + property.url + ' && git init && git remote add origin ' + response.data.ssh_url + ' && cd ../');
     // Finish loop & restart
-    return finish_loop(data);
+    return finish_loop(data, property, response);
 }
 
-async function finish_loop(data) {
-    // Update selected property status to 'success'
-    let pending_request = await supabase
+async function update_deployment(data, property) {
+    // Finish loop & restart
+    return finish_loop(data, property, false);
+}
+
+async function finish_loop(data, property, git_response) {
+    // Define start timestamp for comparison
+    let start = new Date();
+    // Define command for git
+    let git_cmd = 'cd ./sites/' + property.url + ' && git add . && git commit -m "Automated build from Tesla Coil at ' + Date.now() + '" && git branch -M master && git push -u origin master && cd ../';
+    // Commit changes to git
+    await exec(git_cmd);
+    if(git_response) {
+        // Deploy repo to Netlify
+        let netlify_deployment = await axios.post('https://api.netlify.com/api/v1/sites', {
+                                            name: 'NC-Tesla-Coil_' + property.url.split('.').join('-'),
+                                            repo: {
+                                                "provider":"github",
+                                                "id":git_response.data.id,
+                                                "repo":git_response.data.full_name,
+                                                "private":true,
+                                                "branch":"master",
+                                                "cmd":"",
+                                                //"deploy_key_id":process.env.NETLIFY_TOKEN
+                                            }	
+                                        }, { headers: { Authorization: `Bearer ${process.env.NETLIFY_TOKEN}` }});
+
+        if(netlify_deployment.error) return handle_error('deploying repo to netlify', netlify_deployment.error);
+        console.log('Property deployed successfully to https://' + netlify_deployment.data.default_domain);
+    }
+    let seconds = (new Date().getTime() - start.getTime()) / 1000;
+    // Report site deployment
+    console.log('Build for ' + property.url + ' successfully deployed in ' + seconds + ' seconds');
+     // Update selected property status to 'success'
+     let pending_request = await supabase
         .from('builds')
         .update({ status: 'success' })
         .eq('id', data.id);
-
     // Loop through queue again to restart
     return process_queue();
 }
@@ -176,6 +216,18 @@ if(!process.env.NETLIFY_TOKEN) {
 // Ensure Github Token is configured
 if(!process.env.GITHUB_TOKEN) {
     console.log('Cannot start Tesla Coil: Missing Github Token!');
+    return process.exit(22);
+}
+
+// Ensure Github Token is configured
+if(!process.env.GITHUB_USER) {
+    console.log('Cannot start Tesla Coil: Missing Github User!');
+    return process.exit(22);
+}
+
+// Ensure Github Token is configured
+if(!process.env.GITHUB_ORGANIZATION) {
+    console.log('Cannot start Tesla Coil: Missing Github Organization!');
     return process.exit(22);
 }
 

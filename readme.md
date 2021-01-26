@@ -14,7 +14,7 @@
 
 <p align="center">
     <a href="https://github.com/Neutron-Creative/Singlelink/projects/1">
-        <img src="https://img.shields.io/badge/Public Beta-1.0.0-%2303d2d4" alt="Version">
+        <img src="https://img.shields.io/badge/Public Beta-2.0.0-%2303d2d4" alt="Version">
     </a>
     <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">
         <img src="https://img.shields.io/badge/License-GPL-%236ab04c" alt="License"/>
@@ -81,6 +81,8 @@ The following variables are **required** in order for Tesla Coil to run.
 - SUPABASE_KEY
 - NETLIFY_TOKEN
 - GITHUB_TOKEN
+- GITHUB_USER
+- GITHUB_ORGANIZATION
 
 You can set them with the following script.
 
@@ -93,6 +95,10 @@ export SUPABASE_KEY='<your-supabase-key>';
 export NETLIFY_TOKEN='<your-netlify-token>';
 # Private Github Token
 export GITHUB_TOKEN='<your-github-token>';
+# Github user to commit from
+export GITHUB_USER='<your-github-username>';
+# Github organization to host repos
+export GITHUB_ORGANIZATION='<your-github-organization>';
 ```
 
 <br>
@@ -110,7 +116,7 @@ tmux detach -s tesla_coil
 ```
 <br><br>
 <h2 id="development">Develop</h2>
-To develop for Tesla Coil, simply run the following command from the project root directory (after install).
+To develop for Tesla Coil (hot-reloading enabled), simply run the following command from the project root directory after completing install.
 <br><br>
 
 ```bash
