@@ -72,6 +72,7 @@ The following packages are required in order to run Tesla Coil.
 - NodeJS v6+
 - Supabase v1+
 - Go v1.1.3+
+- Goscrape
 
 ### Environment variables
 
@@ -99,6 +100,12 @@ export GITHUB_TOKEN='<your-github-token>';
 export GITHUB_USER='<your-github-username>';
 # Github organization to host repos
 export GITHUB_ORGANIZATION='<your-github-organization>';
+```
+
+Once you have go installed, you will also need to install goscrape with the following script/
+
+```bash
+go get github.com/cornelk/goscrape
 ```
 
 <br>
