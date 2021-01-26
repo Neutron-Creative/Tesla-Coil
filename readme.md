@@ -77,11 +77,22 @@ The following packages are required in order to run Tesla Coil.
 
 The following variables are **required** in order for Tesla Coil to run.
 
+- SUPABASE_URL
+- SUPABASE_KEY
+- NETLIFY_TOKEN
+- GITHUB_TOKEN
+
+You can set them with the following script.
+
 ```bash
 # URL of your Supabase client
 export SUPABASE_URL='<your-supabase-url>';
-# Public anonymous key for your Supabase client
+# Private master key for your Supabase client
 export SUPABASE_KEY='<your-supabase-key>';
+# Private Netlify Client Token
+export NETLIFY_TOKEN='<your-netlify-token>';
+# Private Github Token
+export GITHUB_TOKEN='<your-github-token>';
 ```
 
 <br>
